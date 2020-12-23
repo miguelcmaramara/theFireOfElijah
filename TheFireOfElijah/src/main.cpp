@@ -1,15 +1,48 @@
 #include <Arduino.h>
-int ledPin = 13;
+#include <Pixy2.h>
 
-void setup() {
-  pinMode(ledPin, OUTPUT);
-  // put your setup code here, to run once:
+// This is the main Pixy object 
+Pixy2 pixy;
+
+unsigned long t0 = millis();
+unsigned long deltaT;
+
+int count = 0;
+int i; 
+
+
+void setup()
+{
+  Serial.begin(9600);
+  Serial.print("Starting...\n");
+  
+  pixy.init();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  digitalWrite(ledPin, HIGH);
-  delay(1000);
-  digitalWrite(ledPin, LOW);
-  delay(1000);
+void loop()
+{ 
+  // grab blocks!
+
+  t0 = millis();
+  count = 0;
+  // find out how many!
+  do{
+    pixy.ccc.getBlocks();
+    for(i = 0; i < pixy.ccc.numBlocks; i++){
+      if(pixy.ccc.blocks[i].m_signature == 2){
+        count++;
+      }
+    }
+  } while(pixy.ccc.numBlocks);
+
+  if(count > 0){
+    deltaT = millis() - t0;
+    Serial.print(count);
+    Serial.print(" readings in ");
+    Serial.print((double)deltaT / (double)1000);
+    Serial.print(" seconds\n");
+    Serial.print((double)count / (double)deltaT * (double)1000);
+    Serial.print(" readings per second\n");
+  }
+
 }
